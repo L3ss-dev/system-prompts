@@ -101,6 +101,13 @@ export function onProvider(body, ctx) {
   }
   if (own) list.push({ text: own.text, over, before })
   if (!list.length) return
+  const o = ctx.options || {}
+  if (o.debug) {
+    const p = ctx.provider || {}
+    console.log(
+      "system-prompts: " + ctx.protocol + " " + (p.id ? p.id + "/" : "") + (p.model || "?") +
+      " +" + list.map((x) => x.text.length).join("+") + " chars")
+  }
   return apply(body, ctx.protocol, list)
 }
 
