@@ -104,9 +104,14 @@ export function onProvider(body, ctx) {
   const o = ctx.options || {}
   if (o.debug) {
     const p = ctx.provider || {}
+    const full = o.debug === "full"
+    const show = (t) => {
+      const one = t.replace(/\s+/g, " ").trim()
+      return "[" + (full || one.length <= 60 ? one : one.slice(0, 60) + "…") + "]"
+    }
     console.log(
       "system-prompts: " + ctx.protocol + " " + (p.id ? p.id + "/" : "") + (p.model || "?") +
-      " +" + list.map((x) => x.text.length).join("+") + " chars")
+      " " + list.map((x) => "+" + x.text.length + show(x.text)).join(" "))
   }
   return apply(body, ctx.protocol, list)
 }
