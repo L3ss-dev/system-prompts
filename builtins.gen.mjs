@@ -1,0 +1,135 @@
+// Generates system-prompts.builtins.js from the jailbreaks collection: one
+// prompt per model, pasted whole, plus the named variants no model id
+// matches on its own (opus-v1, muse-spark-1.3-v1, unified, grok-config),
+// which "builtin": "<name>" picks. Keys use the same exact and /regex/
+// syntax the prompts option does. Run with the collection's directory:
+//
+//   node builtins.gen.mjs /path/to/jailbreaks
+//
+// gemma4.md and gpt-oss-20b.md are Ollama Modelfiles: only their SYSTEM
+// block is a prompt, so that is what goes in.
+import { readFileSync, writeFileSync } from "node:fs"
+import { join } from "node:path"
+import { fileURLToPath } from "node:url"
+
+const dir = process.argv[2]
+if (!dir) {
+  console.error("usage: node builtins.gen.mjs <jailbreaks-dir>")
+  process.exit(2)
+}
+
+// [key, file, variant] — variant entries are reachable by name only
+const table = [
+  ["big-pickle", "BigPickle-opencode.md"],
+  ["space-bunny", "spacebunny-agents.md"],
+  ["longcat-2.5", "longcat-agents.md"],
+  ["mimo-2.6", "mimo-2.6-agents.md"],
+  ["step-5-preview", "Step-5-preview.md"],
+  ["muse-spark-1.3", "Muse-spark-1-3-v2.md"],
+  ["muse-spark-1.3-v1", "Muse spark 1.3.md"],
+  ["muse-ai", "muse-ai-AGENTS.md"],
+  ["muse-wonder", "Muse-wonder.md"],
+  ["beam-1.0", "Beam.md"],
+  ["unified", "Unified.md"],
+  ["opus", "opus v2.md"],
+  ["opus-v1", "opus v1.md"],
+  ["sonnet", "Sonnet v2.md"],
+  ["sonnet-v1", "sonnet v1.md"],
+  ["glm-5.2", "glm-5.2.md"],
+  ["zcode/glm-5.2", "glm-zcode-5.2.md"],
+  ["glm-5.3", "glm-zcode-5.3.md"],
+  ["zcode/glm-5.3", "glm-zcode-5.3.md"],
+  ["glm-5.3-flash", "glm-5-3-flash.md"],
+  ["glm-5.3-opencode", "glm5-3opencode.md"],
+  ["glm-5.3-agents", "glm-zcode-5.3-AGENTS.md"],
+  ["deepseek-v3", "deepseek v3.md"],
+  ["deepseek-v4", "deepseek v4.md"],
+  ["deepseek-4.1", "deepseek-4-1.md"],
+  ["kimi-k2", "kimi-k2.md"],
+  ["kimi-k3", "kimi-k3-agents.md"],
+  ["kimi-k3.1", "kimik3.1.md"],
+  ["grok-build", "Grok build.md"],
+  ["grok-4.7", "grok-4.7.md"],
+  ["grok-config", "grok-config.txt"],
+  ["nemotron-3-ultra", "nemotron-3-ultra.md"],
+  ["gemini-4-argon", "Gemini-4-Argon.md"],
+  ["mistral-large-4", "Mistral-Large-4.md"],
+  ["qwen-3.7", "qwen-3.7.md"],
+  ["qwen-3.8", "qwen-3.8.md"],
+  ["gemma4", "gemma4.md", "system"],
+  ["gpt-oss-20b", "gpt-oss-20b.md", "system"],
+  // names the providers give these models, which the exact keys miss
+  ["/^big-?pickle/", "BigPickle-opencode.md"],
+  ["/^space-?bunny/", "spacebunny-agents.md"],
+  ["/^longcat/", "longcat-agents.md"],
+  ["/^mimo-v?2\\.6/", "mimo-2.6-agents.md"],
+  ["/^step-5/", "Step-5-preview.md"],
+  ["/^muse-spark/", "Muse-spark-1-3-v2.md"],
+  ["/^muse-ai/", "muse-ai-AGENTS.md"],
+  ["/^muse-wonder/", "Muse-wonder.md"],
+  ["/^beam/", "Beam.md"],
+  ["/^claude-opus/", "opus v2.md"],
+  ["/^claude-sonnet/", "Sonnet v2.md"],
+  ["/^glm-5\\.2/", "glm-5.2.md"],
+  ["/^glm-5\\.3/", "glm-zcode-5.3.md"],
+  ["/^deepseek-(chat|reasoner|v3)/", "deepseek v3.md"],
+  // 4.1 is a v4 with a dot: its own pattern first, or /^deepseek-v4/ takes it
+  ["/^deepseek-v?4\\.1/", "deepseek-4-1.md"],
+  ["/^deepseek-v4/", "deepseek v4.md"],
+  ["/^kimi-k2/", "kimi-k2.md"],
+  ["/^kimi-k3/", "kimi-k3-agents.md"],
+  ["/^grok-build/", "Grok build.md"],
+  ["/^grok-4/", "grok-4.7.md"],
+  ["/^nemotron-3/", "nemotron-3-ultra.md"],
+  ["/^gemini-4/", "Gemini-4-Argon.md"],
+  ["/^mistral-large/", "Mistral-Large-4.md"],
+  ["/^qwen-?3\\.7/", "qwen-3.7.md"],
+  ["/^qwen-?3\\.8/", "qwen-3.8.md"],
+  ["/^gemma-?4/", "gemma4.md", "system"],
+  ["/^gpt-oss/", "gpt-oss-20b.md", "system"],
+]
+
+const read = (file, variant) => {
+  let s = readFileSync(join(dir, file), "utf8")
+  if (s.charCodeAt(0) === 0xfeff) s = s.slice(1)
+  if (variant === "system") {
+    const m = /SYSTEM\s+"""([\s\S]*?)"""/.exec(s)
+    if (!m) throw new Error(`${file}: no SYSTEM """ block`)
+    s = m[1].replace(/^\s*\n/, "").replace(/\s+$/, "") + "\n"
+  }
+  return s
+}
+
+const esc = (s) =>
+  JSON.stringify(s)
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029")
+    .replace(/<\/script/gi, "<\\/script")
+
+// one constant per file, so a file used by several keys is written once
+const seen = new Map()
+const texts = []
+const out = []
+let bytes = 0
+for (const [key, file, variant] of table) {
+  let i = seen.get(file)
+  if (i === undefined) {
+    const text = read(file, variant)
+    i = texts.push(text) - 1
+    seen.set(file, i)
+    bytes += text.length
+  }
+  out.push(`  ${JSON.stringify(key)}: t${i}`)
+}
+
+const header = `// Built-in prompts, one per model, from the jailbreaks collection
+// (github.com/togg53192-cmd/jailbreaks). Keys are model ids — exact, or
+// /regex/ when a provider names the model differently — matched against
+// the model a request actually runs on. A name no model id matches
+// (opus-v1, muse-spark-1.3-v1, unified, grok-config, …) is reachable with
+// "builtin": "<name>". Generated by builtins.gen.mjs; edit that, not this.
+`
+const consts = texts.map((t, i) => `const t${i} = ${esc(t)}`).join("\n")
+const body = "export const builtins = {\n" + out.join(",\n") + ",\n}\n"
+writeFileSync(join(fileURLToPath(new URL(".", import.meta.url)), "system-prompts.builtins.js"), header + consts + "\n\n" + body)
+console.log(`${table.length} entries from ${seen.size} files, ${bytes} chars of prompt`)

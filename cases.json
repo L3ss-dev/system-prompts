@@ -1,0 +1,983 @@
+[
+  {
+    "name": "Anthropic: none is given this one",
+    "options": {
+      "system_prompt": "Be brief."
+    },
+    "request": {
+      "model": "m",
+      "messages": []
+    },
+    "expect_request": {
+      "model": "m",
+      "messages": [],
+      "system": "Be brief."
+    }
+  },
+  {
+    "name": "Anthropic: an agent's own stays without override",
+    "options": {
+      "system_prompt": "Be brief."
+    },
+    "request": {
+      "model": "m",
+      "system": "You code."
+    }
+  },
+  {
+    "name": "Anthropic: override appends a block after the cached ones",
+    "options": {
+      "system_prompt": "Be brief.",
+      "override": true
+    },
+    "request": {
+      "model": "m",
+      "system": [
+        {
+          "type": "text",
+          "text": "You code.",
+          "cache_control": {
+            "type": "ephemeral"
+          }
+        }
+      ]
+    },
+    "expect_request": {
+      "model": "m",
+      "system": [
+        {
+          "type": "text",
+          "text": "You code.",
+          "cache_control": {
+            "type": "ephemeral"
+          }
+        },
+        {
+          "type": "text",
+          "text": "Be brief."
+        }
+      ]
+    }
+  },
+  {
+    "name": "Anthropic: override prepends to a string, New API's way",
+    "options": {
+      "system_prompt": "Be brief.",
+      "override": true,
+      "position": "prepend"
+    },
+    "request": {
+      "model": "m",
+      "system": "You code."
+    },
+    "expect_request": {
+      "model": "m",
+      "system": "Be brief.\nYou code."
+    }
+  },
+  {
+    "name": "Chat: a system message first",
+    "ctx": {
+      "protocol": "chat"
+    },
+    "options": {
+      "system_prompt": "Be brief."
+    },
+    "request": {
+      "model": "m",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    },
+    "expect_request": {
+      "model": "m",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Be brief."
+        },
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  {
+    "name": "Chat: override on a developer message",
+    "ctx": {
+      "protocol": "chat"
+    },
+    "options": {
+      "system_prompt": "Be brief.",
+      "override": true
+    },
+    "request": {
+      "model": "m",
+      "messages": [
+        {
+          "role": "developer",
+          "content": "You code."
+        },
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    },
+    "expect_request": {
+      "model": "m",
+      "messages": [
+        {
+          "role": "developer",
+          "content": "You code.\nBe brief."
+        },
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  {
+    "name": "Responses: instructions",
+    "ctx": {
+      "protocol": "responses"
+    },
+    "options": {
+      "system_prompt": "Be brief.",
+      "override": true
+    },
+    "request": {
+      "model": "m",
+      "instructions": "You code.",
+      "input": []
+    },
+    "expect_request": {
+      "model": "m",
+      "instructions": "You code.\nBe brief.",
+      "input": []
+    }
+  },
+  {
+    "name": "Gemini: systemInstruction",
+    "ctx": {
+      "protocol": "gemini"
+    },
+    "options": {
+      "system_prompt": "Be brief."
+    },
+    "request": {
+      "contents": []
+    },
+    "expect_request": {
+      "contents": [],
+      "systemInstruction": {
+        "parts": [
+          {
+            "text": "Be brief."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "only the agents named",
+    "ctx": {
+      "agent": "codex"
+    },
+    "options": {
+      "system_prompt": "Be brief.",
+      "agents": [
+        "claude"
+      ]
+    },
+    "request": {
+      "model": "m"
+    }
+  },
+  {
+    "name": "only the models named",
+    "options": {
+      "system_prompt": "Be brief.",
+      "models": [
+        "deepseek"
+      ]
+    },
+    "request": {
+      "model": "deepseek-chat"
+    },
+    "expect_request": {
+      "model": "deepseek-chat",
+      "system": "Be brief."
+    }
+  },
+  {
+    "name": "no prompt, nothing done",
+    "options": {},
+    "request": {
+      "model": "m"
+    }
+  },
+  {
+    "name": "models: a model's own name matches magpie's provider/model id (@liucl)",
+    "ctx": {
+      "protocol": "chat"
+    },
+    "options": {
+      "system_prompt": "Be brief.",
+      "models": [
+        "gemini-3.8-flash"
+      ]
+    },
+    "request": {
+      "model": "google/gemini-3.8-flash",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    },
+    "expect_request": {
+      "model": "google/gemini-3.8-flash",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Be brief."
+        },
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  {
+    "name": "models: and the model under a reseller's provider/vendor/model id",
+    "ctx": {
+      "protocol": "chat"
+    },
+    "options": {
+      "system_prompt": "Be brief.",
+      "models": [
+        "gemini-3.8-flash"
+      ]
+    },
+    "request": {
+      "model": "openrouter/google/gemini-3.8-flash",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    },
+    "expect_request": {
+      "model": "openrouter/google/gemini-3.8-flash",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Be brief."
+        },
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  {
+    "name": "models: a shorter prefix of the name still matches",
+    "ctx": {
+      "protocol": "chat"
+    },
+    "options": {
+      "system_prompt": "Be brief.",
+      "models": [
+        "gemini-3.8"
+      ]
+    },
+    "request": {
+      "model": "google/gemini-3.8-flash",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    },
+    "expect_request": {
+      "model": "google/gemini-3.8-flash",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Be brief."
+        },
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  {
+    "name": "models: case aside",
+    "ctx": {
+      "protocol": "chat"
+    },
+    "options": {
+      "system_prompt": "Be brief.",
+      "models": [
+        "gemini-3.8-flash"
+      ]
+    },
+    "request": {
+      "model": "google/Gemini-3.8-Flash",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    },
+    "expect_request": {
+      "model": "google/Gemini-3.8-Flash",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Be brief."
+        },
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  {
+    "name": "models: a full-id prefix as before",
+    "ctx": {
+      "protocol": "chat"
+    },
+    "options": {
+      "system_prompt": "Be brief.",
+      "models": [
+        "google/"
+      ]
+    },
+    "request": {
+      "model": "google/gemini-3.8-flash",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    },
+    "expect_request": {
+      "model": "google/gemini-3.8-flash",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Be brief."
+        },
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  {
+    "name": "models: another model gets none",
+    "ctx": {
+      "protocol": "chat"
+    },
+    "options": {
+      "system_prompt": "Be brief.",
+      "models": [
+        "gemini-3.8-flash"
+      ]
+    },
+    "request": {
+      "model": "google/gemini-3.8-pro",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  {
+    "name": "models: a name only inside a segment is no match",
+    "ctx": {
+      "protocol": "chat"
+    },
+    "options": {
+      "system_prompt": "Be brief.",
+      "models": [
+        "gemini-3.8-flash"
+      ]
+    },
+    "request": {
+      "model": "google/xgemini-3.8-flash",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  {
+    "name": "models: a group's try on the model named gets the prompt",
+    "ctx": {
+      "protocol": "chat"
+    },
+    "options": {
+      "system_prompt": "Be brief.",
+      "models": [
+        "gemini-3.8-flash"
+      ]
+    },
+    "provider": {
+      "id": "google",
+      "name": "Google",
+      "model": "gemini-3.8-flash"
+    },
+    "request": {
+      "model": "group/fast",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    },
+    "expect_request": {
+      "model": "group/fast",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Be brief."
+        },
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  {
+    "name": "models: a group's try on another model gets none",
+    "ctx": {
+      "protocol": "chat"
+    },
+    "options": {
+      "system_prompt": "Be brief.",
+      "models": [
+        "gemini-3.8-flash"
+      ]
+    },
+    "provider": {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "model": "deepseek-v4.1-flash"
+    },
+    "request": {
+      "model": "group/fast",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  {
+    "name": "models: a group's try named by provider/model",
+    "ctx": {
+      "protocol": "chat"
+    },
+    "options": {
+      "system_prompt": "Be brief.",
+      "models": [
+        "google/gemini-3.8"
+      ]
+    },
+    "provider": {
+      "id": "google",
+      "name": "Google",
+      "model": "gemini-3.8-flash"
+    },
+    "request": {
+      "model": "group/fast",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    },
+    "expect_request": {
+      "model": "group/fast",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Be brief."
+        },
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  {
+    "name": "models: a try after onRequest gave the prompt is not given it twice",
+    "ctx": {
+      "protocol": "chat"
+    },
+    "options": {
+      "system_prompt": "Be brief.",
+      "models": [
+        "gemini-3.8-flash"
+      ],
+      "override": true
+    },
+    "provider": {
+      "id": "google",
+      "name": "Google",
+      "model": "gemini-3.8-flash"
+    },
+    "request": {
+      "model": "google/gemini-3.8-flash",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    },
+    "expect_request": {
+      "model": "google/gemini-3.8-flash",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Be brief."
+        },
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  {
+    "name": "models: a group's try for an agent not named gets none",
+    "ctx": {
+      "protocol": "chat",
+      "agent": "codex"
+    },
+    "options": {
+      "system_prompt": "Be brief.",
+      "models": [
+        "gemini-3.8-flash"
+      ],
+      "agents": [
+        "claude"
+      ]
+    },
+    "provider": {
+      "id": "google",
+      "name": "Google",
+      "model": "gemini-3.8-flash"
+    },
+    "request": {
+      "model": "group/fast",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  {
+    "name": "no models: a try is left to onRequest's prompt",
+    "ctx": {
+      "protocol": "chat"
+    },
+    "options": {
+      "system_prompt": "Be brief."
+    },
+    "provider": {
+      "id": "google",
+      "name": "Google",
+      "model": "gemini-3.8-flash"
+    },
+    "request": {
+      "model": "group/fast",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    },
+    "expect_request": {
+      "model": "group/fast",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Be brief."
+        },
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  {
+    "name": "models: per-model rules wait for a try on a model named",
+    "ctx": {
+      "protocol": "chat"
+    },
+    "options": {
+      "models": [
+        "glm-5.2"
+      ],
+      "prompts": {
+        "glm-5.2": "GLM rules."
+      }
+    },
+    "provider": {
+      "id": "zcode",
+      "model": "glm-5.2"
+    },
+    "request": {
+      "model": "group/fast",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    },
+    "expect_request": {
+      "model": "group/fast",
+      "messages": [
+        {
+          "role": "system",
+          "content": "GLM rules."
+        },
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  {
+    "name": "models: per-model rules reach no try on a model not named",
+    "ctx": {
+      "protocol": "chat"
+    },
+    "options": {
+      "models": [
+        "glm-5.2"
+      ],
+      "prompts": {
+        "kimi-k3": "KIMI rules."
+      }
+    },
+    "provider": {
+      "id": "kimi",
+      "model": "kimi-k3"
+    },
+    "request": {
+      "model": "group/fast",
+      "messages": [
+        {
+          "role": "user",
+          "content": "hi"
+        }
+      ]
+    }
+  },
+  {
+    "name": "per-model: an exact key by the model the try goes to",
+    "options": {
+      "prompts": {
+        "glm-4.7": "GLM rules."
+      }
+    },
+    "request": {
+      "model": "group/daily",
+      "messages": []
+    },
+    "expect_request": {
+      "model": "group/daily",
+      "messages": [],
+      "system": "GLM rules."
+    },
+    "provider": {
+      "id": "zcode",
+      "model": "glm-4.7"
+    }
+  },
+  {
+    "name": "per-model: provider slash model works as a key",
+    "options": {
+      "prompts": {
+        "zcode/glm-4.7": "SLASH KEY."
+      }
+    },
+    "request": {
+      "model": "group/daily",
+      "messages": []
+    },
+    "expect_request": {
+      "model": "group/daily",
+      "messages": [],
+      "system": "SLASH KEY."
+    },
+    "provider": {
+      "id": "zcode",
+      "model": "glm-4.7"
+    }
+  },
+  {
+    "name": "per-model: a regex key matches the model on the provider",
+    "options": {
+      "prompts": {
+        "/^deepseek/": "DS family."
+      }
+    },
+    "request": {
+      "model": "fast",
+      "messages": []
+    },
+    "expect_request": {
+      "model": "fast",
+      "messages": [],
+      "system": "DS family."
+    },
+    "provider": {
+      "id": "kimi",
+      "model": "deepseek-v4"
+    }
+  },
+  {
+    "name": "per-model: global first, then the model's own",
+    "options": {
+      "system_prompt": "GLOBAL.",
+      "prompts": {
+        "glm-4.7": "OWN."
+      }
+    },
+    "request": {
+      "model": "group/daily",
+      "messages": []
+    },
+    "expect_request": {
+      "model": "group/daily",
+      "messages": [],
+      "system": "GLOBAL.\nOWN."
+    },
+    "provider": {
+      "id": "zcode",
+      "model": "glm-4.7"
+    }
+  },
+  {
+    "name": "per-model: the model's own falls back to the global's override and position",
+    "options": {
+      "system_prompt": "GLOBAL.",
+      "override": true,
+      "position": "prepend",
+      "prompts": {
+        "glm-4.7": {
+          "text": "OWN."
+        }
+      }
+    },
+    "request": {
+      "model": "group/daily",
+      "system": "You code."
+    },
+    "expect_request": {
+      "model": "group/daily",
+      "system": "OWN.\nGLOBAL.\nYou code."
+    },
+    "provider": {
+      "id": "zcode",
+      "model": "glm-4.7"
+    }
+  },
+  {
+    "name": "per-model: a rule of its own override and position",
+    "options": {
+      "system_prompt": "GLOBAL.",
+      "override": false,
+      "prompts": {
+        "glm-4.7": {
+          "text": "OWN.",
+          "override": true,
+          "position": "prepend"
+        }
+      }
+    },
+    "request": {
+      "model": "group/daily",
+      "system": "You code."
+    },
+    "expect_request": {
+      "model": "group/daily",
+      "system": "OWN.\nYou code."
+    },
+    "provider": {
+      "id": "zcode",
+      "model": "glm-4.7"
+    }
+  },
+  {
+    "name": "per-model: no rule and no global, nothing done",
+    "options": {
+      "prompts": {
+        "glm-4.7": "OWN."
+      }
+    },
+    "request": {
+      "model": "group/daily",
+      "messages": []
+    },
+    "provider": {
+      "id": "zcode",
+      "model": "kimi-k7"
+    }
+  },
+  {
+    "name": "per-model: an exact key wins over a regex one",
+    "options": {
+      "prompts": {
+        "glm-4.7": "EXACT.",
+        "/^glm/": "REGEX."
+      }
+    },
+    "request": {
+      "model": "group/daily",
+      "messages": []
+    },
+    "expect_request": {
+      "model": "group/daily",
+      "messages": [],
+      "system": "EXACT."
+    },
+    "provider": {
+      "id": "zcode",
+      "model": "glm-4.7"
+    }
+  },
+  {
+    "name": "per-model: without a provider, the request goes on as it was",
+    "options": {
+      "prompts": {
+        "glm-4.7": "OWN."
+      }
+    },
+    "request": {
+      "model": "glm-4.7",
+      "messages": []
+    }
+  },
+  {
+    "name": "per-model: a model no rule is for falls back to the global",
+    "options": {
+      "system_prompt": "GLOBAL.",
+      "prompts": {
+        "glm-4.7": "OWN."
+      }
+    },
+    "provider": {
+      "id": "zcode",
+      "model": "kimi-k7"
+    },
+    "request": {
+      "model": "glm-4.7",
+      "messages": []
+    },
+    "expect_request": {
+      "model": "glm-4.7",
+      "messages": [],
+      "system": "GLOBAL."
+    }
+  },
+  {
+    "name": "markdown: a global prompt pasted as lines",
+    "options": {
+      "system_prompt": ["# Rules", "", "- Be brief.", "- Cite files."]
+    },
+    "request": {
+      "model": "m",
+      "messages": []
+    },
+    "expect_request": {
+      "model": "m",
+      "messages": [],
+      "system": "# Rules\n\n- Be brief.\n- Cite files."
+    }
+  },
+  {
+    "name": "markdown: a model's prompt pasted as lines, with the global's",
+    "options": {
+      "system_prompt": "GLOBAL.",
+      "prompts": {
+        "glm-4.7": ["## GLM", "Think in steps."]
+      }
+    },
+    "provider": {
+      "id": "zcode",
+      "model": "glm-4.7"
+    },
+    "request": {
+      "model": "group/daily",
+      "messages": []
+    },
+    "expect_request": {
+      "model": "group/daily",
+      "messages": [],
+      "system": "GLOBAL.\n## GLM\nThink in steps."
+    }
+  },
+  {
+    "name": "markdown: text inside a rule's object is joined the same way",
+    "options": {
+      "override": true,
+      "prompts": {
+        "glm-4.7": {
+          "text": ["## GLM", "Think in steps."],
+          "position": "append"
+        }
+      }
+    },
+    "provider": {
+      "id": "zcode",
+      "model": "glm-4.7"
+    },
+    "request": {
+      "model": "group/daily",
+      "system": "You code."
+    },
+    "expect_request": {
+      "model": "group/daily",
+      "system": "You code.\n## GLM\nThink in steps."
+    }
+  }
+]

@@ -1,0 +1,33 @@
+{
+  "name": "@magpie-community/middleware-system-prompts",
+  "version": "0.3.3",
+  "description": "New API's system_prompt (系统提示词) as magpie gateway middleware: give agents' requests a system prompt of yours, per model as it runs, in each API's own place for it — with one prompt per model built in",
+  "type": "module",
+  "files": [
+    "system-prompts.middleware.js",
+    "system-prompts.builtins.js",
+    "README.md"
+  ],
+  "keywords": [
+    "magpie",
+    "magpie-middleware",
+    "new-api",
+    "system-prompts",
+    "jailbreaks",
+    "llm-gateway"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/L3ss-dev/system-prompts.git"
+  },
+  "magpie": {
+    "middleware": "./system-prompts.middleware.js",
+    "options": {
+      "builtin": true,
+      "override": true,
+      "position": "append",
+      "system_prompt": "Reply in the language the user writes in."
+    }
+  }
+}
